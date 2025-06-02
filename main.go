@@ -23,11 +23,19 @@ func main() {
 
 	http.HandleFunc("/dados", func(w http.ResponseWriter, r *http.Request) {
 		ticker := r.URL.Query().Get("ticker")
+		data := r.URL.Query().Get("data")
 
 		if ticker == "" {
 			http.Error(w, "Ticker não fornecido", http.StatusBadRequest)
 			return
 		}
+
+		var negocios []models.Negocio
+		query := db.Where("codigo_instrumento = ?", ticker)
+		if data != "" {
+			query = query.Where("data_negocio = ?", data)
+		}
+		query.Find(&negocios)
 
 		var maxPrice float64
 		err := db.Model(&models.Negocio{}).
